@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Собрать universal .app
         env:
@@ -37,7 +37,7 @@ jobs:
       - name: Упаковать
         run: ditto -c -k --sequesterRsrc --keepParent "build/OpenCode Go Bar.app" "OpenCode-Go-Bar.zip"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: OpenCode-Go-Bar
           path: OpenCode-Go-Bar.zip
@@ -45,7 +45,7 @@ jobs:
 
       - name: Приложить к релизу
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: OpenCode-Go-Bar.zip
           body: |
