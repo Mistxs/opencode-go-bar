@@ -1,0 +1,58 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Собрать universal .app
+        env:
+          UNIVERSAL: "1"
+          APP_VERSION: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
+        run: ./build.sh
+
+      - name: Проверить сборку
+        run: |
+          lipo -info "build/OpenCode Go Bar.app/Contents/MacOS/OpenCodeGoBar"
+          codesign --verify --verbose=2 "build/OpenCode Go Bar.app"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "build/OpenCode Go Bar.app/Contents/Info.plist"
+
+      - name: Упаковать
+        run: ditto -c -k --sequesterRsrc --keepParent "build/OpenCode Go Bar.app" "OpenCode-Go-Bar.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OpenCode-Go-Bar
+          path: OpenCode-Go-Bar.zip
+          if-no-files-found: error
+
+      - name: Приложить к релизу
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: OpenCode-Go-Bar.zip
+          body: |
+            Универсальная сборка для macOS 13+ (Intel и Apple Silicon).
+
+            Приложение подписано ad-hoc. Если Gatekeeper не даёт запустить:
+
+            ```bash
+            xattr -dr com.apple.quarantine "/Applications/OpenCode Go Bar.app"
+            ```

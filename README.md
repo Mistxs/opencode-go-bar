@@ -1,5 +1,7 @@
 # OpenCode Go Bar
 
+[![build](https://github.com/Mistxs/opencode-go-bar/actions/workflows/build.yml/badge.svg)](https://github.com/Mistxs/opencode-go-bar/actions/workflows/build.yml)
+
 Маленькое приложение для macOS, которое показывает остаток лимитов **OpenCode Go** прямо в строке меню: три полоски — 5 часов, неделя, месяц.
 
 ![Иконка в строке меню](docs/menubar.png)
@@ -40,17 +42,30 @@ OpenCode Go  ·  Go
 
 > **Важно:** `/api/go/status` — внутренний endpoint веб-консоли OpenCode, а не публичный API. Он может измениться без предупреждения. Если консоль переедет на другой адрес или формат, поправьте `Sources/GOAPIClient.m`.
 
+## Скачать
+
+Готовая сборка: [Releases](https://github.com/Mistxs/opencode-go-bar/releases/latest) — универсальный `.app` для Intel и Apple Silicon.
+
+```bash
+# если Gatekeeper не даёт запустить скачанное приложение
+xattr -dr com.apple.quarantine "/Applications/OpenCode Go Bar.app"
+```
+
 ## Сборка
 
 Нужны macOS 13+ и Command Line Tools (`xcode-select --install`). Xcode целиком не требуется.
 
 ```bash
-./build.sh            # собрать в build/OpenCode Go Bar.app
-./build.sh --run      # собрать и запустить
-./build.sh --install  # скопировать в ~/Applications и запустить
+./build.sh                     # собрать под текущую архитектуру
+UNIVERSAL=1 ./build.sh         # universal: Intel + Apple Silicon
+./build.sh --run               # собрать и запустить
+./build.sh --install           # скопировать в ~/Applications и запустить
+APP_VERSION=1.0.1 ./build.sh   # подставить версию в Info.plist
 ```
 
 Приложение подписывается ad-hoc — этого достаточно для локального запуска и автозапуска.
+
+CI ([build.yml](.github/workflows/build.yml)) на каждый пуш собирает universal-версию на `macos-14` и кладёт zip в артефакты. Пуш тега вида `v1.0.0` создаёт релиз и прикладывает к нему `OpenCode-Go-Bar.zip`.
 
 ## Автозапуск
 
@@ -103,5 +118,6 @@ Sources/
   GOProbe.m              режим --probe
   GOPreview.m            режим --icon-preview
 Resources/Info.plist     LSUIElement = true, без иконки в Dock
+.github/workflows/       CI: universal-сборка и релизы по тегам
 build.sh                 сборка и установка
 ```
