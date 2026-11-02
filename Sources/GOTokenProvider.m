@@ -80,7 +80,11 @@ static NSDictionary *_Nullable GOJSONObject(NSData *data) {
     if (!credential) return nil;
 
     NSDictionary *value = [credential[@"value"] isKindOfClass:[NSDictionary class]] ? credential[@"value"] : nil;
-    NSString *access = [value[@"access"] isKindOfClass:[NSString class]] ? value[@"access"] : nil;
+    // Новый формат OpenCode (2.x) — API-ключ в value.key; старый — OAuth в value.access.
+    NSString *access = [value[@"key"] isKindOfClass:[NSString class]] ? value[@"key"] : nil;
+    if (access.length == 0) {
+        access = [value[@"access"] isKindOfClass:[NSString class]] ? value[@"access"] : nil;
+    }
     if (access.length == 0) return nil;
 
     GOToken *token = [GOToken new];
@@ -95,17 +99,29 @@ static NSDictionary *_Nullable GOJSONObject(NSData *data) {
 }
 
 + (NSDictionary *)preferredCredentialIn:(NSArray *)credentials {
-    NSDictionary *fallback = nil;
+    NSDictionary *best = nil;
+    NSInteger bestScore = NSIntegerMin;
+
     for (NSDictionary *credential in credentials) {
         if (![credential isKindOfClass:[NSDictionary class]]) continue;
-        if (![credential[@"integrationID"] isEqual:@"opencode"]) continue;
+
+        NSString *integration = [credential[@"integrationID"] isKindOfClass:[NSString class]]
+            ? credential[@"integrationID"] : nil;
+        // Новые версии OpenCode хранят ключ как "opencode-go", старые — как "opencode".
+        if (![integration isEqual:@"opencode-go"] && ![integration isEqual:@"opencode"]) continue;
 
         id active = credential[@"active"];
         BOOL isActive = (active == nil || active == [NSNull null] || [active boolValue]);
-        if (isActive) return credential;
-        if (!fallback) fallback = credential;
+
+        NSInteger score = 0;
+        if (isActive) score += 2;
+        if ([integration isEqual:@"opencode-go"]) score += 1;
+        if (score > bestScore) {
+            best = credential;
+            bestScore = score;
+        }
     }
-    return fallback;
+    return best;
 }
 
 // MARK: - База OpenCode (fallback)
@@ -123,8 +139,8 @@ static NSDictionary *_Nullable GOJSONObject(NSData *data) {
 
     GOToken *token = nil;
     const char *sql = "SELECT value FROM credential "
-                      "WHERE integration_id = 'opencode' AND active = 1 "
-                      "ORDER BY time_updated DESC LIMIT 1";
+                      "WHERE integration_id IN ('opencode-go', 'opencode') AND active = 1 "
+                      "ORDER BY (integration_id = 'opencode-go') DESC, time_updated DESC LIMIT 1";
     sqlite3_stmt *statement = NULL;
 
     if (sqlite3_prepare_v2(database, sql, -1, &statement, NULL) == SQLITE_OK &&
@@ -133,7 +149,11 @@ static NSDictionary *_Nullable GOJSONObject(NSData *data) {
         if (text) {
             NSString *json = [NSString stringWithUTF8String:(const char *)text];
             NSDictionary *value = GOJSONObject([json dataUsingEncoding:NSUTF8StringEncoding]);
-            NSString *access = [value[@"access"] isKindOfClass:[NSString class]] ? value[@"access"] : nil;
+            // Новый формат OpenCode (2.x) — API-ключ в value.key; старый — OAuth в value.access.
+            NSString *access = [value[@"key"] isKindOfClass:[NSString class]] ? value[@"key"] : nil;
+            if (access.length == 0) {
+                access = [value[@"access"] isKindOfClass:[NSString class]] ? value[@"access"] : nil;
+            }
             if (access.length > 0) {
                 token = [GOToken new];
                 token.token = access;

@@ -32,7 +32,7 @@ OpenCode Go  ·  Go
 
 ## Как это работает
 
-1. Приложение читает OAuth-токен аккаунта OpenCode из локального OpenCode:
+1. Приложение читает токен аккаунта OpenCode (в OpenCode 2.x — API-ключ OpenCode Go, в старых версиях — OAuth) из локального OpenCode:
    - сначала через HTTP API запущенного сервиса (`~/.local/state/opencode/service.json`, basic auth);
    - если сервис не запущен — напрямую из базы `~/.local/share/opencode/opencode.db` (read-only).
 2. С этим токеном запрашивает `https://console.opencode.ai/api/go/status`.

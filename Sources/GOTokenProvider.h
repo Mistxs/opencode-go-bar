@@ -9,7 +9,7 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 @interface GOTokenProvider : NSObject
-/// OAuth-токен аккаунта OpenCode из локального OpenCode.
+/// Токен аккаунта OpenCode (API-ключ OpenCode Go или OAuth) из локального OpenCode.
 + (nullable GOToken *)accessTokenWithError:(NSError **)error;
 @end
 
