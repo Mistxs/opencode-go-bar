@@ -30,6 +30,7 @@ clang \
   -o "$APP/Contents/MacOS/OpenCodeGoBar"
 
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 
 if [[ -n "${APP_VERSION:-}" ]]; then

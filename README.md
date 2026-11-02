@@ -1,5 +1,7 @@
 # OpenCode Go Bar
 
+<img src="docs/app-icon.png" width="128" alt="Иконка приложения">
+
 [![build](https://github.com/Mistxs/opencode-go-bar/actions/workflows/build.yml/badge.svg)](https://github.com/Mistxs/opencode-go-bar/actions/workflows/build.yml)
 
 Маленькое приложение для macOS, которое показывает остаток лимитов **OpenCode Go** прямо в строке меню: три полоски — 5 часов, неделя, месяц.
@@ -82,6 +84,9 @@ CI ([build.yml](.github/workflows/build.yml)) на каждый пуш соби�
 
 # Перерисовать превью иконки (светлая/тёмная тема)
 "build/OpenCode Go Bar.app/Contents/MacOS/OpenCodeGoBar" --icon-preview /tmp/icon.png
+
+# Перерисовать иконку приложения (AppIcon.icns и docs/app-icon.png)
+./tools/build-app-icon.sh
 ```
 
 `--probe` печатает источник токена и все три лимита:
@@ -118,6 +123,8 @@ Sources/
   GOProbe.m              режим --probe
   GOPreview.m            режим --icon-preview
 Resources/Info.plist     LSUIElement = true, без иконки в Dock
+Resources/AppIcon.icns   иконка приложения для Launchpad и Finder
+tools/                   генератор иконки
 .github/workflows/       CI: universal-сборка и релизы по тегам
 build.sh                 сборка и установка
 ```
